@@ -19,7 +19,7 @@ Where width and height are the resolution of the window.
 ## NOTE
 The camera is at a fixed angle meant for viewing the provided teapot mesh, and 
 other models my be off-center or out of frame. To manually adjust the camera,
-change the input to the `dolly` function in (Mesh.hs)[src/mesh.hs] on line 91,
+change the input to the `dolly` function in [Mesh.hs](src/Mesh.hs) on line 91,
 and recompile with `stack build`.
 
 # Example usage
