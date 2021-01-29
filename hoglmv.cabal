@@ -24,7 +24,7 @@ executable hoglmv
                      , OpenGLRaw
                      , sdl2
                      , vinyl
-                     , vinyl-pgl
+                     , vinyl-gl
                      , GLUtil
                      , linear
                      , filepath
