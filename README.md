@@ -1,11 +1,11 @@
 # Haskell OpenGL Mesh Viewer
 An opengl mesh viewer. Works with Wavefront OBJ files, 
 and tested with .png textures. Uses a simple Phong Shader algorithm,
-following [this tutorial](https://duriansoftware.com/joe/an-intro-to-modern-opengl.-chapter-4:-rendering-a-dynamic-3d-scene-with-phong-shading).
-Builds upon [hcubegl](https://github.com/noodles623/hcubegl).
+following [this tutorial](https://duriansoftware.com/joe/an-intro-to-modern-opengl.-chapter-4:-rendering-a-dynamic-3d-scene-with-phong-shading), and displays a
+rotating model. Builds upon [hcubegl](https://github.com/noodles623/hcubegl).
 
 # How to install
-This program uses [stack](https://github.com/commercialhaskell/stack)
+This program uses [stack](https://github.com/commercialhaskell/stack).
 Install stack and run `stack build` to compile the program.
 
 # Usage
