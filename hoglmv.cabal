@@ -1,8 +1,6 @@
 name:                hoglmv
 version:             0.1.0.0
--- synopsis:
--- description:
--- homepage:            https://github.com/gith
+homepage:            https://github.com/noodles623/hoglmv
 license:             BSD3
 license-file:        LICENSE
 author:              David Needles
@@ -26,7 +24,7 @@ executable hoglmv
                      , OpenGLRaw
                      , sdl2
                      , vinyl
-                     , vinyl-gl
+                     , vinyl-pgl
                      , GLUtil
                      , linear
                      , filepath
