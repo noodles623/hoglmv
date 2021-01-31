@@ -16,6 +16,10 @@ $ stack run [width] [height] [mesh.obj] [image.png]
 ```
 Where width and height are the resolution of the window. 
 
+Use the keyboard to move the camera: Arrow-keys change the angle of view. 
+WASD to move the camera up/down/left/right. PageUp, PageDown to go forward
+and back.
+
 ## NOTE
 The camera is at a fixed angle meant for viewing the provided teapot mesh, and 
 other models my be off-center or out of frame. To manually adjust the camera,

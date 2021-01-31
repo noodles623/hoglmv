@@ -8,9 +8,9 @@ import Data.Foldable (foldMap, traverse_)
 import Data.Vinyl
 import Graphics.GLUtil
 import Graphics.GLUtil.Camera3D
-import Graphics.Rendering.OpenGL
+import Graphics.Rendering.OpenGL hiding (Back)
 import Graphics.VinylGL
-import Linear (V1(..), V2(..), V3(..), V4(..), _x, M44, (!*!))
+import Linear (Epsilon, V1(..), V2(..), V3(..), V4(..), _x, M44, (!*!))
 import System.FilePath ((</>))
 import Control.Monad (join)
 import If
@@ -21,15 +21,19 @@ import ObjLoad
 
 type Viewport = '("viewport", V2 GLsizei)
 
-type AppInfo = FieldRec '[ '("cam", M44 GLfloat)
+type AppInfo = FieldRec '[ '("cam", Camera GLfloat)
                          , '("proj", M44 GLfloat)
                          , '("trans", M44 GLfloat)
                          , Viewport ]
 
-type CamInfo = '[ '("proj",  M44 GLfloat)
-                , '("cam",   M44 GLfloat) 
-                , '("trans", M44 GLfloat) ]
+type CamInfo = FieldRec '[ '("cam", M44 GLfloat)
+                         , '("proj", M44 GLfloat)
+                         , '("trans", M44 GLfloat) ]
 
+data MoveCam = Forward | Back
+             | TUp | TDown | TLeft | TRight
+             | RUp | RDown | RLeft | RRight
+             | None
 
 type Pos = "vertexCoord" ::: V3 GLfloat
 type Tex = "texCoord" ::: V2 GLfloat
@@ -37,16 +41,19 @@ type Norm = "vertexNorm" ::: V3 GLfloat
 type Spec = "specular" ::: V4 GLfloat
 type Shin = "shininess" ::: V1 GLfloat
 
+makeCamInfo :: Camera GLfloat -> M44 GLfloat -> M44 GLfloat -> CamInfo
+makeCamInfo cam proj trans = xrec (camMatrix cam, proj, trans)
+
 startState :: (Int, Int) -> Float -> AppInfo
 startState (w,h) _ = xrec
                      ( mCam
                      , mProj
-                     , mCam
+                     , camMatrix $ mCam
                      , V2 (fromIntegral w) (fromIntegral h) )               
   where mProj = projectionMatrix (deg2rad 45) (wf/hf) 0.5 100.0
-        mCam = camMatrix fpsCamera
         wf = fromIntegral w :: Float
         hf = fromIntegral h :: Float
+        mCam = dolly (V3 0 2 7) $ fpsCamera
 
 loadTextures :: [FilePath] -> IO [TextureObject]
 loadTextures = fmap (either error id . sequence) . mapM aux
@@ -81,14 +88,26 @@ id4 = m44_ [ V4 1 0 0 0
 
 trans deg = foldr (!*!) id4 [ rotateY deg ]
 
-animate :: AppInfo -> Float -> IO AppInfo
-animate info ct = return $
-  rputf #trans (trans ct) $
-  rputf #cam newCam info
-  where deg = sin ct * 20
-        newCam = camMatrix $
-                 tilt (-40) $
-                 dolly (V3 0 7.0 6.5) $ fpsCamera
+animateModel :: AppInfo -> Float -> AppInfo
+animateModel info ct = rputf #trans (trans ct) info
+
+moveCam :: MoveCam -> (Camera GLfloat -> Camera GLfloat)
+moveCam mv = case mv of
+  RUp -> tilt 1
+  RDown -> tilt (-1)
+  RLeft -> panGlobal (1)
+  RRight -> panGlobal (-1)
+  Forward -> dolly $ V3 0 0 (-0.1)
+  Back -> dolly $ V3 0 0 0.1
+  TUp -> dolly $ V3 0 0.1 0
+  TDown -> dolly $ V3 0 (-0.1) 0
+  TLeft -> dolly $ V3 (-0.1) 0 0
+  TRight -> dolly $ V3 0.1 0 0
+  _ -> id
+
+moveCamera :: AppInfo -> MoveCam -> AppInfo
+moveCamera info mv = rputf #cam newCam info
+  where newCam = moveCam mv $ rvalf #cam info
 
 makeVertice ::  Model -> IGroup -> FieldRec '[Pos,Tex,Norm,Spec,Shin]
 makeVertice m (pi,ti,ni) = (#vertexCoord =:= (vc ! pi)) <+>
@@ -123,7 +142,13 @@ drawModel modelFile textureFiles = do
   let ss = setUniforms s
   return $ \appInfo -> withVAO vao . withTextures2D ts $ 
     do currentProgram $= Just (program s)
-       ss (rcast appInfo :: FieldRec CamInfo)
+       ss $ makeCamInfo
+         (rvalf #cam appInfo)
+         (rvalf #proj appInfo)
+         (rvalf #trans appInfo)
+
+       --(rcast (rputf #cam
+         --         (camMatrix (rvalf #cam appInfo))) appInfo :: FieldRec CamInfo)
        drawIndexedTris tris
 
 setup :: String -> [String] -> Float -> Float -> IO (AppInfo -> IO ())
